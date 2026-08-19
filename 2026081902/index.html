@@ -1,0 +1,1091 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/codelife/img/favicon/favicon.jpg">
+  <link rel="icon" href="/codelife/img/favicon/favicon.jpg">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="yq3">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="基于OpenCode的多Agent代码开发工作流：实践与效果 这是系列第二篇。第一篇《基于OpenCode的多Agent代码开发工作流：设计与搭建》讲了架构和机制，这一篇讲它跑起来的真实表现：pulse-pet V1 的完整开发复盘、四个压力案例、质量与成本数据、以及实践如何反过来改了设计。 相关地址：pulse-pet 项目（lab 仓库 pulse-pet&#x2F; 目录）｜ 设计与测试用例">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于OpenCode的多Agent代码开发工作流：实践与效果">
+<meta property="og:url" content="https://yq3.github.io/2026081902/index.html">
+<meta property="og:site_name" content="CodeLife">
+<meta property="og:description" content="基于OpenCode的多Agent代码开发工作流：实践与效果 这是系列第二篇。第一篇《基于OpenCode的多Agent代码开发工作流：设计与搭建》讲了架构和机制，这一篇讲它跑起来的真实表现：pulse-pet V1 的完整开发复盘、四个压力案例、质量与成本数据、以及实践如何反过来改了设计。 相关地址：pulse-pet 项目（lab 仓库 pulse-pet&#x2F; 目录）｜ 设计与测试用例">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-08-19T03:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-19T14:38:23.673Z">
+<meta property="article:author" content="yq3">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="opencode">
+<meta property="article:tag" content="多Agent">
+<meta property="article:tag" content="工作流">
+<meta property="article:tag" content="LLM">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>基于OpenCode的多Agent代码开发工作流：实践与效果 - CodeLife</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/codelife/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/codelife/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/codelife/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yq3.github.io","root":"/codelife/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/codelife/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/codelife/js/utils.js" ></script>
+  <script  src="/codelife/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/codelife/">
+      <strong>CodeLife</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/codelife/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/codelife/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/codelife/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/codelife/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/codelife/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/codelife/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/codelife/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/codelife/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/codelife/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/codelife/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/codelife/img/bg/autumn.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="基于OpenCode的多Agent代码开发工作流：实践与效果"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-08-19 11:00" pubdate>
+          2026年8月19日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          67 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">基于OpenCode的多Agent代码开发工作流：实践与效果</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="基于OpenCode的多Agent代码开发工作流：实践与效果"><a href="#基于OpenCode的多Agent代码开发工作流：实践与效果" class="headerlink" title="基于OpenCode的多Agent代码开发工作流：实践与效果"></a>基于OpenCode的多Agent代码开发工作流：实践与效果</h1><blockquote>
+<p>这是系列第二篇。第一篇《基于OpenCode的多Agent代码开发工作流：设计与搭建》讲了架构和机制，这一篇讲它跑起来的真实表现：pulse-pet V1 的完整开发复盘、四个压力案例、质量与成本数据、以及实践如何反过来改了设计。</p>
+<p><strong>相关地址</strong>：pulse-pet 项目（<a target="_blank" rel="noopener" href="https://github.com/yq3/lab/tree/main/pulse-pet">lab 仓库 pulse-pet&#x2F; 目录</a>）｜ 设计与测试用例：<a target="_blank" rel="noopener" href="https://github.com/yq3/lab/blob/main/pulse-pet/DESIGN.md">DESIGN.md</a>、<a target="_blank" rel="noopener" href="https://github.com/yq3/lab/blob/main/pulse-pet/TEST-CASES.md">TEST-CASES.md</a>｜ 8 个任务的完整检查点存档：<a target="_blank" rel="noopener" href="https://github.com/yq3/lab/tree/main/.opencode/workflows">.opencode&#x2F;workflows&#x2F;</a></p>
+</blockquote>
+<h2 id="1-实验设定"><a href="#1-实验设定" class="headerlink" title="1. 实验设定"></a>1. 实验设定</h2><h3 id="被开发的东西：pulse-pet"><a href="#被开发的东西：pulse-pet" class="headerlink" title="被开发的东西：pulse-pet"></a>被开发的东西：pulse-pet</h3><p>一个 macOS 桌面宠物（<a target="_blank" rel="noopener" href="https://tauri.app/">Tauri 2</a> + React + TypeScript）：桌面上有一只像素小猫，实时反映 <a target="_blank" rel="noopener" href="https://opencode.ai/">opencode</a> 编码 agent 的状态（thinking&#x2F;editing&#x2F;testing&#x2F;waiting-permission&#x2F;error…）；控制面板展示 token 用量统计（直读 opencode 的 SQLite）；定时提醒（喝水&#x2F;休息）带全屏烟花庆祝；有 Todo 插件和双语界面。技术栈 Rust + TS 双侧，GUI 应用的验收天然带大量”要看要点的”环节——选它当工作流的试验场，就是故意的：<strong>GUI E2E 是对自动化验证最不友好的品类，能跑通它，跑通别的只是工作量问题</strong>。</p>
+<h3 id="前置条件：设计与测试用例先行"><a href="#前置条件：设计与测试用例先行" class="headerlink" title="前置条件：设计与测试用例先行"></a>前置条件：设计与测试用例先行</h3><p>工作流不负责”想做什么”。开工前仓库里已经有：</p>
+<ul>
+<li><code>DESIGN.md</code>：完整设计（窗口配置、事件链路、调度器语义、数据模型、里程碑切分 M1-M8）</li>
+<li><code>TEST-CASES.md</code>：验收用例，编号到具体步骤 + 预期（TC-EV-01 ~ TC-TD-09 共上百条）</li>
+</ul>
+<p>这两个文档在工作流里的身份是<strong>验收依据，等同需求</strong>：tester 按它逐条勾验，coder 禁改，口径冲突走 CASE_BUG 裁定。这套工作流消费的是”想清楚的输入”，它自己不生产需求——边界划在这里，评价才公平。</p>
+<h3 id="范围"><a href="#范围" class="headerlink" title="范围"></a>范围</h3><p>M1 骨架 → M2 事件链路 → M3 token 统计 → M4 提醒&#x2F;烟花 → M5 atlas 加载器 → M6 拖拽&#x2F;穿透&#x2F;热键 → M7 Todo 插件 → M8 收尾（i18n&#x2F;CI&#x2F;安全回溯）。2026-08-14 深夜到 08-19 下午，约 5 天。</p>
+<h2 id="2-全景数据"><a href="#2-全景数据" class="headerlink" title="2. 全景数据"></a>2. 全景数据</h2><table>
+<thead>
+<tr>
+<th>里程碑</th>
+<th>日期</th>
+<th>轮次</th>
+<th>改动规模</th>
+<th>测试基线（npm &#x2F; cargo）</th>
+<th>PR</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>M1 骨架</td>
+<td>08-14&#x2F;15</td>
+<td><strong>4 轮</strong>（触发收敛保护，用户批准超轮）</td>
+<td>55 文件 +9154</td>
+<td>12 &#x2F; 3</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/yq3/lab/pull/1">PR #1</a></td>
+</tr>
+<tr>
+<td>M2 事件链路</td>
+<td>08-15&#x2F;16</td>
+<td>1 轮双通过</td>
+<td>28 文件 +2882</td>
+<td>53 &#x2F; 34</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/yq3/lab/pull/2">PR #2</a></td>
+</tr>
+<tr>
+<td>M3 token 统计</td>
+<td>08-16</td>
+<td>1 轮双通过</td>
+<td>28 文件 +2904</td>
+<td>85 &#x2F; 58+1</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/yq3/lab/pull/3">PR #3</a></td>
+</tr>
+<tr>
+<td>M4 提醒&#x2F;烟花</td>
+<td>08-16</td>
+<td>1 轮（内含 3 次用户补充需求提交）</td>
+<td>23 文件 +3457</td>
+<td>123 &#x2F; 79+1</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/yq3/lab/pull/4">PR #4</a></td>
+</tr>
+<tr>
+<td>M5 atlas</td>
+<td>08-16</td>
+<td>1 轮（内含 6 次 R1 提交，5 次用户美术反馈）</td>
+<td>25 文件 +2509</td>
+<td>154 &#x2F; 99+1</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/yq3/lab/pull/5">PR #5</a></td>
+</tr>
+<tr>
+<td>M6 交互精致化</td>
+<td>08-17</td>
+<td><strong>3 轮</strong>（用户报 bug + committer NEEDS_CHANGES）</td>
+<td>25 文件 +1461</td>
+<td>184 &#x2F; 115+1</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/yq3/lab/pull/6">PR #6</a></td>
+</tr>
+<tr>
+<td>M7 Todo 插件</td>
+<td>08-17&#x2F;19</td>
+<td>1 轮双通过</td>
+<td>25 文件 +2924</td>
+<td>204 &#x2F; 140+1</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/yq3/lab/pull/7">PR #7</a></td>
+</tr>
+<tr>
+<td>M8 收尾</td>
+<td>08-19</td>
+<td><strong>2 轮</strong>（committer NEEDS_CHANGES）</td>
+<td>35 文件 +2105</td>
+<td>221 &#x2F; 159+1</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/yq3/lab/pull/8">PR #8</a></td>
+</tr>
+</tbody></table>
+<p>8 个 PR 全部合入 develop，约 30 个提交（22 个 coder 实现&#x2F;修复提交 + 8 个回 spec 文档提交）。</p>
+<p><strong>成本</strong>（opencode.db 里的真实账单，24 个子会话 &#x3D; 8 任务 × 3 角色）：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>input tokens</td>
+<td>~7.15M</td>
+</tr>
+<tr>
+<td>output tokens</td>
+<td>~1.23M</td>
+</tr>
+<tr>
+<td>cache read</td>
+<td>~541M</td>
+</tr>
+<tr>
+<td>API 计费</td>
+<td><strong>约 $2.5</strong>（coder 走订阅套餐基本 $0；tester $0.95、committer $0.58、M1&#x2F;M2 早期 coder 计费 $0.97）</td>
+</tr>
+</tbody></table>
+<p>不含编排者主会话和我的交互开销，但量级不会翻一个数量级。<strong>一个完整桌面应用 V1 的多 agent 开发，模型直接成本个位数美元</strong>——主要成本其实是我的人工注意力（见 §7.3）。</p>
+<p><strong>一次通过率</strong>：8 个任务里 5 个一轮双通过；3 个多轮（M1 的 4 轮里有两轮 tester FAIL + 一次 blocked；M6&#x2F;M8 各一次 committer NEEDS_CHANGES）。tester 全程只误判过一次（M1 假阴性，下详），committer 的两次 NEEDS_CHANGES 事后都被证明是对的。</p>
+<h2 id="3-案例一（M1）：当自动化验证说了谎"><a href="#3-案例一（M1）：当自动化验证说了谎" class="headerlink" title="3. 案例一（M1）：当自动化验证说了谎"></a>3. 案例一（M1）：当自动化验证说了谎</h2><p>最有价值的一次翻车。M1 的验收标准里有一条：pet 窗口完全透明（只显示猫，无窗口框感）。</p>
+<p><strong>R1</strong>：coder 交付，tester 全项 PASS（含”透明”——但只核对了配置字段），committer APPROVED（附 6 条 P2 和 2 条需求边界问题）。<strong>双通过后我亲自启动 App 一看：猫被一个白色窗口框着。</strong>自动化全绿，用户肉眼可见地不达标。</p>
+<p>打回 R2：coder 加上 <code>macOSPrivateApi: true</code>（macOS 透明窗口必需），像素级量化证明透明生效。tester 回归 <strong>FAIL</strong>——透明确实修好了，但<strong>窗口内容完全不渲染了</strong>（显示&#x2F;隐藏截屏 diff&#x3D;0，亮像素&#x3D;0，accessibility 树无内容）。证据链非常扎实，coder 打回。</p>
+<p><strong>R3</strong>：coder 定位到 wry 源码级根因，补 <code>backgroundColor: &quot;#00000000&quot;</code>，并给出量化证据：内容 diff 59.7%、亮像素 59716。tester 复测 <strong>FAIL</strong>——全部独立测量依然是 0 内容，报告里写了一句关键的话：”<strong>coder 报告与 tester 实测完全矛盾，两个方向只能一个对，建议用户人工目验</strong>“。</p>
+<p><strong>收敛保护触发</strong>：<code>status=blocked</code>（超 3 轮 + 内容渲染问题往返 2 次）。我从应用程序实际启动 pulse-pet：<strong>猫在，透明也对</strong>。R3 修复在真实环境是好的，tester 的自动化测量是假阴性。</p>
+<p><strong>R4</strong>（我批准突破 maxRounds）：coder 书面分析假阴性根因——① 无头会话里 WebContent 渲染进程被系统挂起（CPU&#x3D;0，rAF 不跑，DOM 空）；② <code>screencapture -l</code> 捕获的是窗口 backing store，而 WKWebView 内容经独立进程用 IOSurface 合成、不写入 backing store，透明窗口恒得全透明图。产出”可信的运行时视觉验证 5 步法”写进 README：真实 GUI 会话启动 → <code>screencapture -x</code> 全屏合成截屏（不用 <code>-l</code>）→ 前置自检（WebContent CPU&gt;0、AXWebArea 有内容）→ 量化指标 → 人工目验兜底。tester 按新方法复验：自检通过（CPU 4.7%、AXLayoutCount&#x3D;4），量化结果与 coder 数字吻合，<strong>PASS</strong>。committer 增量审查 APPROVED，交付。</p>
+<p>这个案例暴露并最终修复了三件事：</p>
+<ol>
+<li><strong>“验收标准含视觉”时，配置核对不算验证</strong>——TC-APP-01 的口径当场升级为”视觉透明需量化实证”；</li>
+<li><strong>无头 GUI 测量有系统性盲区</strong>，验证方法论本身要作为资产沉淀（之后的 M3-M8 再没在这个坑里跌过）；</li>
+<li><strong>矛盾上报机制工作正常</strong>：tester 没有屈从 coder 的数字，coder 没有迎合 tester 的 FAIL，双方各自给出可复核的证据，仲裁权干净地交回用户。收敛保护也没有把流程卡死成官僚主义——用户批准就能突破。</li>
+</ol>
+<h2 id="4-案例二（M5）：美术迭代的工程化"><a href="#4-案例二（M5）：美术迭代的工程化" class="headerlink" title="4. 案例二（M5）：美术迭代的工程化"></a>4. 案例二（M5）：美术迭代的工程化</h2><p>M5 是 atlas 加载器（webp 解码、9 状态映射、宠物选择）。功能本体一轮写完，真正的戏在<strong>美术</strong>上——我一晚上提了 5 次反馈：</p>
+<ol>
+<li>21:09 补充需求：小猫定名 blinking-kitty，<strong>新增一只内置小狗 wagging-doggy</strong>（像素风、摇尾巴）；</li>
+<li>21:31 造型反馈：不写实、参考小猫画风、正面不要侧面、尾巴别摇得刻意 → coder 重画（尾摆帧差异从 1216px 收敛到 224px，全部有像素断言）；</li>
+<li>21:54 反馈：小猫 idle 没在眨眼 + waving 手臂画到猫头上了；</li>
+<li>22:08 反馈：上一轮的眨眼改法（4 格宽横条）不喜欢，<strong>就要单只眼睛变一条缝</strong>；</li>
+<li>22:20 反馈：还是看不到——要求<strong>跟 App 图标一模一样</strong>。</li>
+</ol>
+<p>注意第 3、5 条的处理方式，这是工作流的价值所在：我只会说”没在眨眼”，<strong>supervised-coding（编排者）自己动手解码 spritesheet 做像素级定位</strong>——第 3 次定位到 waving 手臂坐标 x23-24&#x2F;y12-17 落在猫头正中且与身体同色（实锤 bug）；第 5 次定位到真正的根因：资产生成脚本里有一行把右眼强制覆盖为睁眼（”atlas 基线两眼睁开”），而 App 图标的右眼本来是一条缝——<strong>所以无论怎么改眨眼帧，idle 永远是双眼对称的，用户永远看不到图标效果</strong>。修复方向由此精确：idle 行恢复原始单眼缝造型，与 App 图标逐像素 0 mismatch。</p>
+<p>流程机制上，这 5 次反馈全部走”<strong>补充轮</strong>“：落笔 DESIGN&#x2F;TEST-CASES（编排者改文档，coder 禁改）→ coder 在上一提交基础上改 → 重新验证——<strong>不新增 round</strong>。正式轮次计数保持 R1，用户主观反馈不消耗收敛预算。6 个提交（5fcf8fc → d9bc811）每个都带完整的测试基线 + 解码断言（”408 非透明格 0 mismatch”这种级别）。</p>
+<p>复盘：<strong>主观验收（美术观感）也能进工程化流程</strong>，前提是把”用户说不好看”翻译成”哪个像素不对”——这个翻译活，编排者 + 像素分析工具干得比人肉猜快得多。</p>
+<h2 id="5-案例三（M6）：用户报-bug-→-意见闭环的真实运转"><a href="#5-案例三（M6）：用户报-bug-→-意见闭环的真实运转" class="headerlink" title="5. 案例三（M6）：用户报 bug → 意见闭环的真实运转"></a>5. 案例三（M6）：用户报 bug → 意见闭环的真实运转</h2><p>M6 收尾后我日常使用中发现：<strong>拖拽宠物之后，明明没有单击，宠物的状态却轮换了一次</strong>（单击轮换状态是 M1 的既有交互）。原话反馈给编排者。</p>
+<p><strong>R2</strong>：coder 排查出根因——启动 OS 拖拽时清空了”本轮按下”的记录，而 macOS 拖拽结束后 WKWebView 不发 pointercancel、浏览器补发完整的 pointerup+click，点击处理器无从区分拖拽尾巴和真实单击。修复：<code>DragClickGuard</code> 状态机（一次性消费的点击抑制）。用”锁死显示状态 → 合成拖拽 → 截帧断言毛色不变”复现修复前后差异，与我的投诉逐字吻合。</p>
+<p>tester 复验 PASS 后，committer 审查给出 <strong>NEEDS_CHANGES</strong>：一条 P1——它发现<strong>同族的另一个时序竞态</strong>：右键菜单的 document 级 pointerdown 监听用了 capture 阶段，先于 React 把菜单关掉，导致”菜单开着时点画布”这条防线的判断失效，<strong>每次关菜单都会误轮换一次</strong>（有提醒气泡时还会误确认）。意见原文写得很硬：”与用户 R2 投诉的附加单击效果同族，故不放过。”——修复成本”一行级”，但这是正确性缺陷。</p>
+<p><strong>R3</strong>：coder 修复（去 capture + pointerdown 快照菜单开态 + <code>shouldRotateOnClick</code> 纯函数统一判定 + 3 条防回归单测）。有个值得记录的细节：coder 在自测报告里<strong>如实报告了自己的验证是弱证据</strong>——它的合成输入环境出现 App 激活竞态，”菜单开 + 点击送达”的完整时序无法稳定复现，只拿到弱证据，完整的 GUI 手测移交 tester 真实交互环境。tester 在真实环境把三项手测全部跑绿。</p>
+<p>这个案例展示了意见闭环的设计意图如何落地：用户 bug（拖拽误轮换）和审查发现（菜单误轮换）是<strong>同族缺陷的两个实例</strong>，普通”报一个修一个”的流程大概率漏掉第二个——检查点把用户反馈逐字留档，committer 对照检查点审查时把同族问题挖了出来。以及：<strong>弱证据如实上报，验证责任移交到有真实环境的角色</strong>，流程没有强迫 coder 谎报”已验证”。</p>
+<h2 id="6-案例四（M8）：committer-拦下文档级-P1"><a href="#6-案例四（M8）：committer-拦下文档级-P1" class="headerlink" title="6. 案例四（M8）：committer 拦下文档级 P1"></a>6. 案例四（M8）：committer 拦下文档级 P1</h2><p>M8 收尾轮，committer 给出第二次 NEEDS_CHANGES，P1 是个纯文档问题：<strong>README 里的社区素材行序表写错了 3 行</strong>（idle&#x2F;editing&#x2F;testing&#x2F;success… 的行序与实际渲染语义不符，jumping 预留行的位置也错了）。</p>
+<p>为什么文档错误算 P1（阻断交付）？因为这份 README 是给社区用户<strong>自制宠物素材</strong>的规格说明——照错误的行序表做素材，9 个动作状态会整体错乱。用户不读代码，README 就是他们的 API。</p>
+<p>R2 修复后复审，committer 做了”R1 意见闭环对照 9&#x2F;9 全 ✅”的逐项核对才 APPROVED。这个案例补上了质量门禁的最后一块认知：<strong>语义审查的对象不止代码，一切用户会照着执行的东西都是审查对象</strong>。</p>
+<h2 id="7-效果评估"><a href="#7-效果评估" class="headerlink" title="7. 效果评估"></a>7. 效果评估</h2><h3 id="7-1-质量拦截"><a href="#7-1-质量拦截" class="headerlink" title="7.1 质量拦截"></a>7.1 质量拦截</h3><p>committer 每轮输出的 finding 统计（全部有留痕，可在检查点复核）：</p>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th>P1</th>
+<th>P2</th>
+<th>P3</th>
+<th>需求边界问题（回 spec）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>M1</td>
+<td>0</td>
+<td>8</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr>
+<td>M2</td>
+<td>0</td>
+<td>2</td>
+<td>6</td>
+<td>2（含”success 无事件驱动”的实证发现）</td>
+</tr>
+<tr>
+<td>M3</td>
+<td>0</td>
+<td>0</td>
+<td>5</td>
+<td>2</td>
+</tr>
+<tr>
+<td>M4</td>
+<td>0</td>
+<td>7</td>
+<td>0</td>
+<td>6</td>
+</tr>
+<tr>
+<td>M5</td>
+<td>0</td>
+<td>7</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>M6</td>
+<td>1</td>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>M7</td>
+<td>0</td>
+<td>4</td>
+<td>7</td>
+<td>1</td>
+</tr>
+<tr>
+<td>M8</td>
+<td>1</td>
+<td>3</td>
+<td>5</td>
+<td>1</td>
+</tr>
+</tbody></table>
+<p>两个 P1（M6 菜单竞态、M8 行序表）都是真缺陷且都被修复验证。P2 里的典型货色：SQLite 没开 <code>PRAGMA foreign_keys</code> 导致级联删除静默失效（M4&#x2F;M7 的定时炸弹）、token 文件先写后 chmod 的权限短窗口、PNG 解压炸弹无防护、迁移非事务化……这些都不是”跑不过测试”的问题，是<strong>只有读代码的人才能发现的问题</strong>——这正是 committer 跨模型族独立审查的存在意义。</p>
+<p>“需求边界问题”通路（D27）的价值单独说：它拦下的是<strong>验收口径与现实的漂移</strong>。比如 M2 实测发现 opencode 根本没有 success 事件（设计假设有）、DESIGN 里的 SQL 列名与真实 schema 不符、<code>ignoreCursorEvents</code> 不是 Tauri 2 的配置字段——这些都不是代码 bug，是<strong>文档错了</strong>。流程把它们回 spec 由编排者落笔勘误（全程 20+ 处），文档始终是活的真相源而不是开工即过期的标本。</p>
+<h3 id="7-2-遗留事项流转"><a href="#7-2-遗留事项流转" class="headerlink" title="7.2 遗留事项流转"></a>7.2 遗留事项流转</h3><p>P2&#x2F;P3 不阻断交付，但会进检查点的”遗留事项”小节，下一个任务开工时被强制扫描（D29）。真实流转链：</p>
+<ul>
+<li>M1 的 8 条 P2 → M2 开工并入，逐条清偿（含 FK pragma、⌘W 防护、dpr 竞态…）</li>
+<li>M2 新增 P2-9&#x2F;P2-10 + 测试缺口 4 条 → M3 清偿</li>
+<li>M4 的 7 条 P2 → 分流：todo 相关去 M7、多屏实机去 M8、其余顺带</li>
+<li>M7 开工我一句话”能并入都并入” → M4 P2 ②③④ + M5 P2 ⑤⑥ + M6 P2 ② 六项全清</li>
+<li>M8 收尾清偿 A1-A9 九项，剩余的 B 类（需要多屏&#x2F;Windows 实机硬件）显式记录去向</li>
+</ul>
+<p><strong>没有一条 P2 蒸发</strong>。对比我过往”TODO 写在便签上”的开发方式，这是可核查的债务账本。</p>
+<h3 id="7-3-人工介入点的真实成本"><a href="#7-3-人工介入点的真实成本" class="headerlink" title="7.3 人工介入点的真实成本"></a>7.3 人工介入点的真实成本</h3><p>诚实盘点我要做的事：每任务 1 次需求确认（含遗留清单）、每次 subagent 调用前的”调用预告”确认（D28，每任务约 5-15 次）、美术&#x2F;体验类主观反馈（M5 一晚 5 次）、M1 的一次关键仲裁（真实 GUI 目验）、每任务交付确认 + 合入确认。8 个任务合计我的显式交互约 100 次出头的量级，多数是”看一眼预告→回车”。</p>
+<p>这个成本是 D28 主动选择的：编排全自动跑通后我反而心里没底，收了半步。<strong>它买到的东西很具体</strong>——每次角色介入前我能改输入、改范围、跳过；M1 假阴性仲裁那种”只有用户能做的判断”有一个自然的落点；以及全程对模型行为的一手观察（这些观察直接变成了第一篇里的 D28-D37）。</p>
+<h3 id="7-4-测试资产的复利"><a href="#7-4-测试资产的复利" class="headerlink" title="7.4 测试资产的复利"></a>7.4 测试资产的复利</h3><p>测试基线 12 → 221（npm）、3 → 159+1（cargo），且<strong>每轮全量回归</strong>（”全部实际复跑，非引用”是 tester 报告的固定声明）。tester 不只跑新用例：M4 验证时顺带回归了 M1 的窗口配置、M2 的 23 条 TC-EV、M3 的 13 条 TC-TK。六个里程碑的返工没有一次以”改好了但把旧的改坏”收场——双 SHA + 全量回归把这个通道堵死了。</p>
+<h2 id="8-实践反哺设计"><a href="#8-实践反哺设计" class="headerlink" title="8. 实践反哺设计"></a>8. 实践反哺设计</h2><p>第一篇提到九轮修订里 D28 之后的每条都来自实跑。对应关系：</p>
+<table>
+<thead>
+<tr>
+<th>实跑事件</th>
+<th>设计修订</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>M1 编排全自动跑通，用户要求收紧观察粒度</td>
+<td>D28 调用预告</td>
+</tr>
+<tr>
+<td>M1 “P2 移交 M2”靠人记，险些丢失</td>
+<td>D29 遗留事项强制清偿</td>
+</tr>
+<tr>
+<td>M1 交付时的分支混乱</td>
+<td>D30 固定 develop_opencode + 提交前同步</td>
+</tr>
+<tr>
+<td>项目跑完复盘发现全员在默认推理档跑</td>
+<td>D31 →（切 agent 报错）→ D36 <code>reasoningEffort</code></td>
+</tr>
+<tr>
+<td>M1-M3 tester 一轮触发十数次权限确认</td>
+<td>D32 扩容 →（M4 依然不够）→ D37 权限反转</td>
+</tr>
+<tr>
+<td>检查点漏写 task_id &#x2F; filesChanged</td>
+<td>D33 三条铁律</td>
+</tr>
+<tr>
+<td>supervisorSessionId 三任务全 null</td>
+<td>D34 删死字段</td>
+</tr>
+<tr>
+<td>过程中问 coder”为什么这样做”要编排者传话</td>
+<td>D35 直连通道（方案定稿）</td>
+</tr>
+<tr>
+<td>检查点追加内容时锚点旧文本被覆盖</td>
+<td>追加写入铁律（prompt 级热修，M7 期间）</td>
+</tr>
+</tbody></table>
+<p>一个值得强调的模式：<strong>修订全部是”实跑证据 → 设计文档 → prompt&#x2F;配置”的闭环</strong>，设计文档 v10 与最终配置严格同步。没有一条修订是”感觉应该”——这也是为什么这份设计文档本身值得当博客写。</p>
+<h2 id="9-教训清单"><a href="#9-教训清单" class="headerlink" title="9. 教训清单"></a>9. 教训清单</h2><p>给想复刻这套流程的人排雷：</p>
+<ol>
+<li><strong>无头 GUI 验证会系统性说谎</strong>。渲染进程挂起、backing store 不含合成内容、合成输入被激活语义吃掉——M1&#x2F;M6 都付过学费。GUI 项目的 tester 需要”可信验证方法”作为一等资产沉淀（真实会话自检 + 合成截屏 + 量化指标 + 人工兜底），并在 README 里固化。</li>
+<li><strong>合成输入 ≠ 真实输入</strong>。CGEvent 合成点击在 App 非 active 时不可靠（macOS 激活语义消费首个 plain click）；coder 环境测不稳的场景，要设计”移交 tester 真实环境复验”的通道，而不是逼着某个角色谎报绿。</li>
+<li><strong>模型摘要会计数虚标</strong>。”token-stats 12 测”实际 9 测，出现过两三次。committer 的”静态计数逐文件复核”流程就是为这个长出来的——<strong>对模型的产出做机械交叉核对，永远值得</strong>。</li>
+<li><strong>检查点协议要防 edit 的替换语义</strong>。追加内容时锚点文本必须完整出现在 newString 里，否则等于静默删除既有记录。LLM 用编辑工具改状态文件，这类事故是概率问题，只能用铁律压频率。</li>
+<li><strong>单人仓库的 gh 不能 approve 自己的 PR</strong>。终态评审留痕改用 COMMENT 型 review，正文承载全部审查结论——留痕目的达成，形式无所谓。</li>
+<li><strong>验收口径的漂移比代码 bug 更隐蔽</strong>。”需求边界问题”单独通路（不经 coder、回用户）是全套机制里性价比最高的一条，强烈建议保留。</li>
+<li><strong>便宜模型当编排者完全够用</strong>。supervised-coding 用 flash 档模型跑了 8 个任务零调度事故，它做的是确定性工作，贵模型花在判断层（committer 的 pro 档拦截了全部两个 P1）。</li>
+</ol>
+<h2 id="10-结论"><a href="#10-结论" class="headerlink" title="10. 结论"></a>10. 结论</h2><p><strong>这套工作流值得，但有前提。</strong></p>
+<p>适合的场景：单人&#x2F;小团队；需求能先写成结构化验收用例（这条是硬门槛——工作流放大的是”想清楚的输入”）；迭代周期以天计的项目；愿意付每任务十次级确认交互的用户。</p>
+<p>真实的收益构成：committer 独立审查拦下的正确性缺陷（2 个 P1 + 一串 P2 定时炸弹）、跨 8 个里程碑零蒸发的债务账本、全量回归垫底的返工安全感、$2.5 的模型成本，以及一份始终与代码一致的设计文档。</p>
+<p>真实的成本构成：我的交互注意力（比纯手写代码省，但远不是”完全托管”）；流程本身的搭建与九轮修订（好在这是一次性投入，配置随仓库可复用）；以及 GUI 验证方法论的学费。</p>
+<p>下一步：把四个 agent 的 know-how 拆成 skill、用 SDK 把跑定的循环固化成脚本进 CI、迁移到全局配置让其他仓库复用。到时的经验，也许会有第三篇。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/codelife/tags/AI/" class="print-no-link">#AI</a>
+      
+        <a href="/codelife/tags/opencode/" class="print-no-link">#opencode</a>
+      
+        <a href="/codelife/tags/%E5%A4%9AAgent/" class="print-no-link">#多Agent</a>
+      
+        <a href="/codelife/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81/" class="print-no-link">#工作流</a>
+      
+        <a href="/codelife/tags/LLM/" class="print-no-link">#LLM</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>基于OpenCode的多Agent代码开发工作流：实践与效果</div>
+      <div>https://yq3.github.io/2026081902/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>yq3</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年8月19日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/codelife/2026081901/" title="基于OpenCode的多Agent代码开发工作流：设计与搭建">
+                        <span class="hidden-mobile">基于OpenCode的多Agent代码开发工作流：设计与搭建</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/codelife/js/events.js" ></script>
+<script  src="/codelife/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/codelife/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/codelife/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/codelife/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
