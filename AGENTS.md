@@ -42,7 +42,7 @@ npx hexo clean && npx hexo generate --debug
 - 文章内引用写**相对路径** `![题注](img/blog/<文件名>)`——Fluid 主题模板会自动加 `/codelife/` root 前缀；手写 `/codelife/...` 绝对路径会被二次拼接成 `/codelife/codelife/...` 导致 404。
 - alt 文本会作为图片题注显示（`image_caption: enable: true`）。
 - PlantUML 图：本地无 plantuml.jar，用 PlantUML 官方渲染服务（文本 deflate + 自定义 base64 编码，`curl 'https://www.plantuml.com/plantuml/svg/<encoded>'`）。注意**不要加 `<svg>` 前缀指令**（服务端会报 Syntax Error），裸 `@startuml` 内容即可；图内缺 `@startuml/@enduml` 包裹需先补上。
-- **暗色模式适配**（`source/css/dark-image.css`）：PlantUML 图渲染时加 `skinparam backgroundColor transparent`（透明底 + 深色文字）；暗色模式下 Fluid 会在 `<html>` 上设 `data-user-color-scheme="dark"`，CSS 对 `.markdown-body img[src*="img/blog/"]` 应用 `filter: invert(1) hue-rotate(180deg)`——黑字变白字、透明背景 alpha 不受影响、彩色元素色相保持。浅色模式无 filter 显原图。`source/img/blog/` 下的图片都会走此适配。
+- **暗色模式不做图片反色适配**（2026-08-20 试过并回退）：曾用透明底 + `[data-user-color-scheme="dark"] img { filter: invert(1) hue-rotate(180deg) }` 方案，实测暗色下观感不佳、fancybox 点击放大时效果也差，已回退为 PlantUML 默认白底图（暗色下显示为白色卡片，与代码块观感一致，可接受）。
 
 ## 文章 URL（hexo-abbrlink）
 
