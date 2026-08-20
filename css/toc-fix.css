@@ -9,6 +9,12 @@
  * 原因：a.tocbot-link 为块级（-webkit-box）后，行内的箭头 span 被挤到
  *       独立一行，每个条目多占一行导致行距翻倍。绝对定位到左上角 +
  *       标题 padding-left 让位，布局完全确定（单行/两行/箭头均正常）。
+ *
+ * 2026-08-20 追加 v3：竖线 .toc-list-item::before 回移 left: -0.75rem。
+ * 原因：li 设 position: relative 后成为 ::before（激活指示竖线）新的
+ *       定位基准，竖线从"父级 ol 左侧导轨"移到 li 内部、压在箭头上。
+ *       主题每层 ol 的 padding 恰为 1rem，-0.75rem 使竖线回到原始位置
+ *       （对任意嵌套层级均成立）。
  */
 .toc-list-item {
   display: block;
@@ -18,10 +24,14 @@
   position: relative;
 }
 
+.toc-list-item::before {
+  left: -0.75rem;
+}
+
 .toc-list-item > .toc-toggle {
   position: absolute;
   left: 0;
-  top: 0.15rem;
+  top: 0.2rem;
 }
 
 .toc-list-item > a.tocbot-link {
@@ -31,4 +41,5 @@
   overflow: hidden;
   text-overflow: ellipsis;
   padding-left: 0.85rem;
+  line-height: 22px; /* 对齐原始 -webkit-box 的行盒高度（原 li 单行 25.2 = 22 + padding 3.2） */
 }
