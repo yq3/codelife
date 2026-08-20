@@ -26,8 +26,10 @@
 <meta property="og:site_name" content="CodeLife">
 <meta property="og:description" content="基于OpenCode的多Agent代码开发工作流：设计与搭建 这是系列第一篇，讲这套工作流的设计与搭建——架构、机制、决策依据和九轮修订的踩坑史。第二篇《基于OpenCode的多Agent代码开发工作流：实践与效果》讲它跑起来的真实表现，两个典型案例的完整复盘都在那边。 相关地址：实验仓库 yq3&#x2F;lab ｜ 本套工作流全部配置（agent 定义 + 检查点模板 + 855 行设计文档）">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yq3.github.io/codelife/img/blog/2026081901_workflow-overview.svg">
+<meta property="og:image" content="https://yq3.github.io/codelife/img/blog/2026081901_multi-agent-sequence.svg">
 <meta property="article:published_time" content="2026-08-19T02:00:00.000Z">
-<meta property="article:modified_time" content="2026-08-20T03:00:44.943Z">
+<meta property="article:modified_time" content="2026-08-20T03:38:07.319Z">
 <meta property="article:author" content="yq3">
 <meta property="article:tag" content="AI">
 <meta property="article:tag" content="opencode">
@@ -35,6 +37,7 @@
 <meta property="article:tag" content="工作流">
 <meta property="article:tag" content="LLM">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yq3.github.io/codelife/img/blog/2026081901_workflow-overview.svg">
   
   
   
@@ -74,6 +77,7 @@
 
   
 <link rel="stylesheet" href="/codelife/css/toc-fix.css">
+<link rel="stylesheet" href="/codelife/css/dark-image.css">
 
 
 
@@ -564,6 +568,7 @@
 <p>P6 是整套设计的美学核心：<strong>能用确定性机制解决的事，绝不交给模型自觉</strong>。状态机、SHA 校验、权限规则都是确定性的；”这段代码对不对”、”这条意见是不是同一个问题”才交给模型。</p>
 <h2 id="3-核心机制"><a href="#3-核心机制" class="headerlink" title="3. 核心机制"></a>3. 核心机制</h2><h3 id="3-1-主流程状态机"><a href="#3-1-主流程状态机" class="headerlink" title="3.1 主流程状态机"></a>3.1 主流程状态机</h3><figure class="highlight subunit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs subunit">spec_confirm ──用户确认──▶ implementing<br>implementing ──coder 返回──▶ testing<br><span class="hljs-keyword">testing </span>──tester FAIL──▶ fixing（round<span class="hljs-string">+1</span>）──回 coder──▶ implementing<br><span class="hljs-keyword">testing </span>──tester PASS──▶ reviewing<br>reviewing ──NEEDS_CHANGES──▶ fixing（round<span class="hljs-string">+1</span>）──回 coder──▶ implementing<br>reviewing ──NEEDS_CHANGES（需求边界问题）──▶ spec_confirm（回用户，不经 coder）<br>reviewing ──APPROVED 且双 SHA=HEAD──▶ approved ──用户确认──▶ 交付 ──▶ done<br>任何状态 ──超轮/乒乓──▶ blocked（上报用户接管）<br>任何状态 ──用户放弃──▶ cancelled<br></code></pre></td></tr></table></figure>
 
+<p><img src="/codelife/img/blog/2026081901_workflow-overview.svg" srcset="/codelife/img/loading.gif" lazyload alt="多 Agent 开发流程全景（活动图）"></p>
 <p>两个容易忽略的细节：</p>
 <ul>
 <li><strong>fixing 是暂存态</strong>：tester FAIL 或 committer NEEDS_CHANGES 后先置 <code>fixing</code> + <code>round+1</code> + <code>reviewedSha</code> 置空，调用 coder 前再回到 <code>implementing</code>。这样检查点在任何时刻落盘，恢复逻辑都无歧义。</li>
@@ -588,6 +593,7 @@
 <li>续接失败（进程重启&#x2F;compaction）才新开，并告知该角色”从检查点文件恢复上下文”。</li>
 </ul>
 <p>注意两层 ID 不要混淆：业务 ID（taskId，1 任务 &#x3D; 1 检查点文件）和会话 ID（coderTaskId 等，1 角色 &#x3D; 1 会话）。主会话的恢复走 opencode 自身的 session 管理，不入检查点——这是 D34 删掉一个永远填不上的死字段后才干净下来的。</p>
+<p><img src="/codelife/img/blog/2026081901_multi-agent-sequence.svg" srcset="/codelife/img/loading.gif" lazyload alt="角色交互与会话 ID 续接（时序图）"></p>
 <h3 id="3-4-迭代顺序：tester-为什么在-committer-前（D5）"><a href="#3-4-迭代顺序：tester-为什么在-committer-前（D5）" class="headerlink" title="3.4 迭代顺序：tester 为什么在 committer 前（D5）"></a>3.4 迭代顺序：tester 为什么在 committer 前（D5）</h3><p>如果先 review 再测试：tester 发现测试挂 → coder 修 → <strong>committer 的审查作废</strong>（HEAD 变了，stale invalidation），浪费一轮贵的模型推理。</p>
 <p>正确顺序：**机械验证（便宜、快、确定性）先挡低级错误，语义审查（贵）只审”能跑的代码”**。修复轮同样：tester 先回归，committer 再复看。</p>
 <h3 id="3-5-意见传递：逐字原文（D7）"><a href="#3-5-意见传递：逐字原文（D7）" class="headerlink" title="3.5 意见传递：逐字原文（D7）"></a>3.5 意见传递：逐字原文（D7）</h3><p>supervised-coding 把 tester&#x2F;committer 的报告<strong>逐字原文</strong>传给 coder，不做语义汇总、不删减；coder 对每条意见逐条响应：<strong>已修（附证据）&#x2F; 拒绝（附技术论证）</strong>。</p>
