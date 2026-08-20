@@ -72,7 +72,14 @@ overflow hidden
 - 文件：`source/css/toc-fix.css`
 - 引用：`_config.fluid.yml` 中 `custom_css: /css/toc-fix.css`（模板 `css()` helper 自动加 `/codelife/` 前缀）
 
-内容（2026-08-20 修订 v2）：`.toc-list-item` 恢复 `display: block`；"两行省略"移到直接子级 `a.tocbot-link`（块级 `-webkit-box` + line-clamp）；箭头 `.toc-toggle` 绝对定位到条目左上角、标题 `padding-left: 0.85rem` 让位。**v1 教训**：a 设为块级后，行内的箭头 span（inline-block）会被挤到独立一行，每个条目行距翻倍——箭头必须绝对定位。正常浏览器下视觉零变化，纯防御性修正。
+内容（2026-08-20 修订 v4）：`.toc-list-item` 恢复 `display: block`；"两行省略"移到直接子级 `a.tocbot-link`（块级 `-webkit-box` + line-clamp + `line-height: 22px`）；箭头 `.toc-toggle` 绝对定位到条目左上角（`top: 0.2rem`）、标题 `padding-left: 0.85rem` 让位；竖线 `::before` 回移 `left: -0.75rem`。
+
+**踩坑教训（v1→v4）**：
+- **v1**：a 设为块级后，行内的箭头 span（inline-block）会被挤到独立一行，每个条目行距翻倍——箭头必须绝对定位；
+- **v2**：li 设 `position: relative` 后成为 `::before`（激活指示竖线）新的定位基准，竖线从"父级 ol 左侧导轨"移到 li 内部压在箭头上——需 `left: -0.75rem` 推回原位（每层 ol padding 恰为 1rem，对任意嵌套层级成立）；
+- **v3**：`-webkit-box` 块级化后 a 的行盒比原始 inline strut 紧 ~3px（单行 liH 22.2 vs 原始 25.2），累计 32 条明显偏紧——需显式 `line-height: 22px` 对齐（原始值来自老 flexbox 怪癖，无法隐式继承）。v4 实测 12 项 liH 全部精确对齐原始值（25.2/47.2/72.4/100.8/336.7），唯 H1 条目总高 47.2→1070 属修复目的（子树展开）非回归。
+
+**校验方法**：静态复现页（真实渲染后的 TOC DOM + main.css ± toc-fix.css），probe 对比全部条目的 liH / 箭头位置 / 竖线 ::before / 折叠 max-height 与原始主题的计算值。
 
 **诊断要点**（如再遇类似"DOM 在但不显示"问题）：用 F12 Console 检查 `document.querySelectorAll('#toc-body li').length`（DOM 完整性）与 `getBoundingClientRect().height`（布局层）——两者都正常而视觉缺失，查 `line-clamp` / `overflow: hidden` / 旧 flexbox（`display: -webkit-box`）。
 
