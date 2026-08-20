@@ -72,7 +72,7 @@ overflow hidden
 - 文件：`source/css/toc-fix.css`
 - 引用：`_config.fluid.yml` 中 `custom_css: /css/toc-fix.css`（模板 `css()` helper 自动加 `/codelife/` 前缀）
 
-内容：把 `.toc-list-item` 恢复为 `display: block`，将"两行省略"移到其直接子级 `a.tocbot-link` 上——保留主题原意的长标题截断，子树不再被钳制。正常浏览器下视觉零变化，纯防御性修正。
+内容（2026-08-20 修订 v2）：`.toc-list-item` 恢复 `display: block`；"两行省略"移到直接子级 `a.tocbot-link`（块级 `-webkit-box` + line-clamp）；箭头 `.toc-toggle` 绝对定位到条目左上角、标题 `padding-left: 0.85rem` 让位。**v1 教训**：a 设为块级后，行内的箭头 span（inline-block）会被挤到独立一行，每个条目行距翻倍——箭头必须绝对定位。正常浏览器下视觉零变化，纯防御性修正。
 
 **诊断要点**（如再遇类似"DOM 在但不显示"问题）：用 F12 Console 检查 `document.querySelectorAll('#toc-body li').length`（DOM 完整性）与 `getBoundingClientRect().height`（布局层）——两者都正常而视觉缺失，查 `line-clamp` / `overflow: hidden` / 旧 flexbox（`display: -webkit-box`）。
 
