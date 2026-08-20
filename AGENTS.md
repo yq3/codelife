@@ -30,7 +30,7 @@ npx hexo clean && npx hexo generate --debug
 
 1. 确认当天下一可用 ID：`ls source/_posts/YYYYMMDD* | sort | tail -1`（只需读文件名，不消耗 token 读取文件内容）
 2. 在 `source/_posts/` 下创建 `YYYYMMDDNN_标题.md`（文件名为 `年月日+序号+下划线+标题`，如 `2026071101_hello-world.md`）
-3. 文件内 front matter 填写 `abbrlink: YYYYMMDDNN`（与文件名前缀一致），插件根据此值生成 URL
+3. 文件内 front matter 填写 `abbrlink: YYYYMMDDNN`（与文件名前缀一致），插件根据此值生成 URL；`date` 只写年月日（如 `date: 2026-08-19`），不带时分秒
 4. `npm run server` → 本地预览 `http://localhost:4000/codelife/`
 5. `git add . && git commit -m "..." && git push origin main` → CI 自动构建并发布到 `https://yq3.github.io/codelife/`
 

@@ -1,6 +1,6 @@
 ---
 title: 基于OpenCode的多Agent代码开发工作流：设计与搭建
-date: 2026-08-19 10:00:00
+date: 2026-08-19
 abbrlink: 2026081901
 tags: [AI, opencode, 多Agent, 工作流, LLM]
 ---
@@ -58,32 +58,14 @@ tags: [AI, opencode, 多Agent, 工作流, LLM]
 
 ## 2. 架构：四个角色
 
-```
-用户指令
-   │
-   ▼
-supervised-coding（编排者，便宜模型）
-   │  ⓪ 扫历史检查点的遗留事项（未了结的默认并入本任务）
-   │  ⓪.5 需求复述 + 验收标准 + 遗留清单 → 用户确认
-   │  ⓪.8 调用预告（每次调 subagent 前先请示用户）
-   │  ① Task 调用（会话内直连，task_id 续接）
-   ├─▶ coder（实现者）：TDD 实现 + 自测，只碰业务/测试代码
-   ├─▶ tester（验证执行者）：用例文档 → 可执行测试 + 逐条勾验
-   └─▶ committer（审查+把关）：语义审查 + CASE_BUG 裁定 + 终态 PR 评审，全只读
-   │
-   ├─ 每轮关键节点 ──写──▶ .opencode/workflows/<task>.md（检查点）
-   ▼
-双 verdict + 双 SHA = HEAD → 用户确认 → 交付（推分支、开 PR、留痕）
-```
-
 ### 角色职责矩阵
 
-| 角色 | 职责 | 明确不做 |
-|---|---|---|
-| supervised-coding | 遗留检查、需求确认、调用预告、调度、写检查点、传意见、收敛保护 | 写代码、测试、审查 |
-| coder | 实现需求、TDD 自测、按意见修复 | 改验收用例/设计文档、未经确认 push、merge |
-| tester | 用例文档→可执行测试、跑验证、里程碑勾验 | 改业务代码、改用例文档 |
-| committer | 语义审查、CASE_BUG 裁定、终态 PR 评审 | 改任何代码 |
+| 角色 | 类型 | 职责 | 明确不做 |
+|---|---|---|---|
+| supervised-coding | 主 agent | 遗留检查、需求确认、调用预告、调度、写检查点、传意见、收敛保护 | 写代码、测试、审查 |
+| coder | subagent | 实现需求、TDD 自测、按意见修复 | 改验收用例/设计文档、未经确认 push、merge |
+| tester | subagent | 用例文档→可执行测试、跑验证、里程碑勾验 | 改业务代码、改用例文档 |
+| committer | subagent | 语义审查、CASE_BUG 裁定、终态 PR 评审 | 改任何代码 |
 
 ### 模型分配
 

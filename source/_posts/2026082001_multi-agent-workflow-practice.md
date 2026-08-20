@@ -1,7 +1,7 @@
 ---
 title: 基于OpenCode的多Agent代码开发工作流：实践与效果
-date: 2026-08-19 11:00:00
-abbrlink: 2026081902
+date: 2026-08-20
+abbrlink: 2026082001
 tags: [AI, opencode, 多Agent, 工作流, LLM]
 ---
 
