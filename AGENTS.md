@@ -52,6 +52,30 @@ npx hexo clean && npx hexo generate --debug
 - 搜索配置引用了 `/local-search.xml`，但所需的 `hexo-generator-search` 插件 **不在** `package.json` 中——搜索功能可能无法正常工作。
 - 评论功能默认关闭。
 
+### 已知问题修复：文章目录（TOC）只显示 H1
+
+**问题**（2026-08-19 发现）：H1 标题较长的文章（如《基于OpenCode的多Agent代码开发工作流》），Chrome 下侧边栏目录只显示 H1，h2/h3 子条目不可见；缩放到 50% 或触发 resize/refresh 后恢复。DOM 完整（条目数正确、无折叠类、每项 rect height > 0），属绘制层问题，无头 Chrome（软件渲染）无法复现。
+
+**根因**：Fluid v1.9.9 的 `source/css/_pages/_base/_widget/toc.styl:77-83` 给每个 TOC 条目 `.toc-list-item` 设置：
+
+```styl
+display -webkit-box
+-webkit-box-orient vertical
+-webkit-line-clamp 2
+overflow hidden
+```
+
+本意是长标题最多显示 2 行省略号，但 H1 条目的 `<li>` 内嵌套整个 h2/h3 子树的 `<ol>`——`line-clamp: 2` 钳制的是整个盒子内的行盒数。H1 长标题换行占满 2 行配额后，子树所有 h2/h3 的文字被钳掉不绘制（布局高度保留）。旧文 H1 短（1 行）故不触发。
+
+**修复**：通过 `custom_css` 注入覆写（不修改 `node_modules`）：
+
+- 文件：`source/css/toc-fix.css`
+- 引用：`_config.fluid.yml` 中 `custom_css: /css/toc-fix.css`（模板 `css()` helper 自动加 `/codelife/` 前缀）
+
+内容：把 `.toc-list-item` 恢复为 `display: block`，将"两行省略"移到其直接子级 `a.tocbot-link` 上——保留主题原意的长标题截断，子树不再被钳制。正常浏览器下视觉零变化，纯防御性修正。
+
+**诊断要点**（如再遇类似"DOM 在但不显示"问题）：用 F12 Console 检查 `document.querySelectorAll('#toc-body li').length`（DOM 完整性）与 `getBoundingClientRect().height`（布局层）——两者都正常而视觉缺失，查 `line-clamp` / `overflow: hidden` / 旧 flexbox（`display: -webkit-box`）。
+
 ## Git 与发布
 
 - **Git 推送必须用 SSH**：本机 keychain 无 GitHub HTTPS 凭据，HTTPS push 会报认证错误。remote 已配置为 `git@github.com:yq3/codelife.git`，请勿改回 HTTPS。推送到 GitHub 前先确认 `ssh -T git@github.com` 可用（首次可能需 `ssh-add ~/.ssh/id_ed25519`）。

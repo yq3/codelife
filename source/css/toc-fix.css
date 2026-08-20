@@ -1,0 +1,20 @@
+/*
+ * 修复 Fluid 主题 TOC 只显示 H1 的问题
+ * 根因：toc.styl 给 .toc-list-item 设置 -webkit-line-clamp: 2，
+ *       H1 长标题占满行配额后嵌套子树（h2/h3 的 <ol>）文字被钳掉不绘制。
+ * 方案：li 恢复普通 block，"两行省略"移到直接子级 a.tocbot-link 上。
+ */
+.toc-list-item {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  text-overflow: clip;
+}
+
+.toc-list-item > a.tocbot-link {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
