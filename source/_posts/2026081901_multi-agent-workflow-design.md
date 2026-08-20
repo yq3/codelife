@@ -126,6 +126,8 @@ reviewing ──APPROVED 且双 SHA=HEAD──▶ approved ──用户确认─
 任何状态 ──用户放弃──▶ cancelled
 ```
 
+![多 Agent 开发流程全景（活动图）](img/blog/2026081901_workflow-overview.svg)
+
 两个容易忽略的细节：
 
 - **fixing 是暂存态**：tester FAIL 或 committer NEEDS_CHANGES 后先置 `fixing` + `round+1` + `reviewedSha` 置空，调用 coder 前再回到 `implementing`。这样检查点在任何时刻落盘，恢复逻辑都无歧义。
@@ -185,6 +187,8 @@ updatedAt: 2026-08-11T10:30:00+08:00
 - 续接失败（进程重启/compaction）才新开，并告知该角色"从检查点文件恢复上下文"。
 
 注意两层 ID 不要混淆：业务 ID（taskId，1 任务 = 1 检查点文件）和会话 ID（coderTaskId 等，1 角色 = 1 会话）。主会话的恢复走 opencode 自身的 session 管理，不入检查点——这是 D34 删掉一个永远填不上的死字段后才干净下来的。
+
+![角色交互与会话 ID 续接（时序图）](img/blog/2026081901_multi-agent-sequence.svg)
 
 ### 3.4 迭代顺序：tester 为什么在 committer 前（D5）
 
