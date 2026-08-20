@@ -2,7 +2,7 @@
 title: 基于OpenCode的多Agent代码开发工作流：设计与搭建
 date: 2026-08-19
 abbrlink: 2026081901
-tags: [AI, opencode, 多Agent, 工作流, LLM]
+tags: [AI, opencode, Multi-Agent, 工作流, LLM]
 ---
 
 # 基于OpenCode的多Agent代码开发工作流：设计与搭建
