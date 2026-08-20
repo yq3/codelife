@@ -15,6 +15,14 @@
  *       定位基准，竖线从"父级 ol 左侧导轨"移到 li 内部、压在箭头上。
  *       主题每层 ol 的 padding 恰为 1rem，-0.75rem 使竖线回到原始位置
  *       （对任意嵌套层级均成立）。
+ *
+ * 2026-08-20 追加 v5：.tocbot-is-collapsed 补 overflow: hidden。
+ * 原因：Fluid 传 collapseDepth: 6，tocbot 不给嵌套 ol 加 tocbot-is-collapsible
+ *       （该类自带 overflow: hidden），点击箭头折叠只加 max-height: 0 的
+ *       .tocbot-is-collapsed——原始主题靠 li 的 overflow: hidden（line-clamp
+ *       三件套）兜底裁剪溢出内容；v4 将 li 改 overflow: visible（为保住
+ *       li 外左侧的竖线）后，折叠的子树内容溢出可见。在折叠类上直接补
+ *       裁剪，展开态不受影响。
  */
 .toc-list-item {
   display: block;
@@ -26,6 +34,10 @@
 
 .toc-list-item::before {
   left: -0.75rem;
+}
+
+.tocbot-is-collapsed {
+  overflow: hidden;
 }
 
 .toc-list-item > .toc-toggle {
