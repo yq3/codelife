@@ -1001,8 +1001,8 @@ tag:
 #---------------------------
 about:
   enable: true
-  banner_img: /img/bg/banner.jpg
-  banner_img_height: 60
+  banner_img: /img/bg/xuanwuhu.jpg
+  banner_img_height: 80
   banner_mask_alpha: 0.3
   avatar: /img/favicon/favicon.jpg
   name: "CodeLife"
