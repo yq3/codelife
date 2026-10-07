@@ -944,8 +944,8 @@ discuss:
 # Archive Page
 #---------------------------
 archive:
-  banner_img: /img/bg/xuanwuhu.jpg
-  banner_img_height: 100
+  banner_img: /img/bg/xuanwuhu1.jpg
+  banner_img_height: 60
   banner_mask_alpha: 0.3
 
 
